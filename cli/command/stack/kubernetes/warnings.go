@@ -10,6 +10,14 @@ import (
 func warnUnsupportedFeatures(stderr io.Writer, cfg *composetypes.Config) {
 	warnForGlobalNetworks(stderr, cfg)
 	for _, s := range cfg.Services {
+		for _, v := range s.Volumes {
+			if v.Tmpfs != nil {
+				warnServicef(stderr, s.Name, "tmpfs is not supported")
+			}
+		}
+		if s.Init != nil {
+			warnServicef(stderr, s.Name, "init is not supported")
+		}
 		warnForServiceNetworks(stderr, s)
 		warnForUnsupportedDeploymentStrategy(stderr, s)
 		warnForUnsupportedRestartPolicy(stderr, s)
@@ -59,6 +67,15 @@ func warnForUnsupportedDeploymentStrategy(stderr io.Writer, s composetypes.Servi
 	}
 	if config.MaxFailureRatio != 0 {
 		warnServicef(stderr, s.Name, "update_config.max_failure_ratio is not supported")
+	}
+	if s.Deploy.RollbackConfig != nil {
+		warnServicef(stderr, s.Name, "rollback_config is not supported")
+	}
+	if s.Deploy.Placement.MaxReplicas != 0 {
+		warnServicef(stderr, s.Name, "max_replicas_per_node is not supported")
+	}
+	if s.Deploy.Placement.MaxReplicas != 0 {
+		warnServicef(stderr, s.Name, "max_replicas_per_node is not supported")
 	}
 }
 

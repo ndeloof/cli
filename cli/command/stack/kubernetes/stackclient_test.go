@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"bytes"
 	"io/ioutil"
 	"testing"
 
@@ -36,8 +37,9 @@ services:
 }
 
 func TestFromComposeUnsupportedVersion(t *testing.T) {
+	var stderr bytes.Buffer
 	stackClient := &stackV1Beta1{}
-	_, err := stackClient.FromCompose(ioutil.Discard, "foo", &composetypes.Config{
+	_, err := stackClient.FromCompose(&stderr, "foo", &composetypes.Config{
 		Version:  "3.6",
 		Filename: "banana",
 		Services: []composetypes.ServiceConfig{
@@ -56,5 +58,6 @@ func TestFromComposeUnsupportedVersion(t *testing.T) {
 			},
 		},
 	})
-	assert.ErrorContains(t, err, "the compose yaml file is invalid with v3.5: services.foo.volumes.0 Additional property tmpfs is not allowed")
+	assert.NilError(t, err)
+	assert.Equal(t, stderr.String(), "service \"foo\": tmpfs is not supported\n")
 }
