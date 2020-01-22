@@ -8,7 +8,7 @@ import (
 	"time"
 
 	servicecli "github.com/docker/cli/cli/command/service"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/compose-go/types"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"

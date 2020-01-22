@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/compose-go/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

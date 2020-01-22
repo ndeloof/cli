@@ -1,7 +1,7 @@
 package convert
 
 import (
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/compose-go/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/pkg/errors"
 )

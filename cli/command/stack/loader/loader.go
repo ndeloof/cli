@@ -11,9 +11,9 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/schema"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/compose-go/loader"
+	"github.com/docker/compose-go/schema"
+	composetypes "github.com/docker/compose-go/types"
 	"github.com/pkg/errors"
 )
 
