@@ -35,6 +35,7 @@ require (
 	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 	github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
 	github.com/xeipuuv/gojsonschema v1.2.0
+	go.opentelemetry.io/otel/trace v1.4.1
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/text v0.3.7
@@ -73,6 +74,22 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
+)
+
+require (
+	go.opentelemetry.io/otel v1.4.1
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.4.1
+	go.opentelemetry.io/otel/sdk v1.4.1
+)
+
+require (
+	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
+	github.com/go-logr/logr v1.2.2 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.4.1 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.4.1 // indirect
+	go.opentelemetry.io/proto/otlp v0.12.0 // indirect
 )
 
 replace (

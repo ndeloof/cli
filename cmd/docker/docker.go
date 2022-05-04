@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/propagation"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
@@ -20,6 +23,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	otlphttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
@@ -28,7 +36,6 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 		flags   *pflag.FlagSet
 		helpCmd *cobra.Command
 	)
-
 	cmd := &cobra.Command{
 		Use:              "docker [OPTIONS] COMMAND [ARG...]",
 		Short:            "A self-sufficient runtime for containers",
@@ -248,7 +255,74 @@ func runDocker(dockerCli *command.DockerCli) error {
 	// We've parsed global args already, so reset args to those
 	// which remain.
 	cmd.SetArgs(args)
-	return cmd.Execute()
+
+	metadata, err := dockerCli.ContextStore().GetMetadata(dockerCli.CurrentContext())
+	if err != nil {
+		return err
+	}
+	endpoint, ok := metadata.Endpoints["telemetry"]
+	if !ok {
+		endpoint = "unix:///var/run/docker-telemetry.sock"
+	}
+
+	ctx := context.Background()
+	exporter, err := otlphttp.New(ctx, otlphttp.WithEndpoint(endpoint.(string)))
+	if err != nil {
+		return err
+	}
+	defer exporter.Shutdown(ctx)
+
+	ssp := sdktrace.NewSimpleSpanProcessor(exporter)
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(ssp),
+	)
+	defer tracerProvider.Shutdown(ctx)
+	otel.SetTracerProvider(tracerProvider)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+
+	if tp, ok := os.LookupEnv("TRACEPARENT"); ok {
+		prop := otel.GetTextMapPropagator()
+		prop.Extract(ctx, newOtelCliCarrier())
+	}
+
+	tracer := otel.Tracer("")
+	ctx, span := tracer.Start(ctx, cmd.Name(), trace.WithTimestamp(time.Now()))
+	defer span.End()
+	err = cmd.ExecuteContext(ctx)
+	if sterr, ok := err.(cli.StatusError); ok {
+		span.SetStatus(codes.Code(sterr.StatusCode), sterr.Status)
+	}
+	return err
+}
+
+type carrier struct {
+	traceparent string
+}
+
+// Get returns the traceparent string if key is "traceparent" otherwise nothing
+func (c carrier) Get(key string) string {
+	if key == "traceparent" {
+		return c.traceparent
+	} else {
+		return ""
+	}
+}
+
+// Set sets the global traceparent if key is "traceparent" otherwise nothing
+func (c carrier) Set(key string, value string) {
+	if key == "traceparent" {
+		c.traceparent = value
+	}
+}
+
+// Keys returns a list of strings containing just "traceparent"
+func (c carrier) Keys() []string {
+	return []string{"traceparent"}
+}
+
+func newOtelCliCarrier() propagation.TextMapCarrier {
+
+	return &carrier{}
 }
 
 func main() {
