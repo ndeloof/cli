@@ -97,12 +97,15 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunExec executes an `exec` command
 func RunExec(dockerCli command.Cli, options ExecOptions) error {
+	return RunExecWithContext(context.Background(), dockerCli, options)
+}
+
+func RunExecWithContext(ctx context.Context, dockerCli command.Cli, options ExecOptions) error {
 	execConfig, err := parseExec(options, dockerCli.ConfigFile())
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
 	client := dockerCli.Client()
 
 	// We need to check the tty _before_ we do the ContainerExecCreate, because
