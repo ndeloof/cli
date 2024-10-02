@@ -5,28 +5,22 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 )
 
-const whiteSpaces = " \t"
-
-func parseKeyValueFile(filename string, lookupFn func(string) (string, bool)) ([]string, error) {
-	fh, err := os.Open(filename)
-	if err != nil {
-		return []string{}, err
-	}
-	defer fh.Close()
-	return ParseKeyValueFile(fh, filename, lookupFn)
-}
-
 // ParseKeyValueFile parse a file containing key,value pairs separated by equal sign
 // Lines starting with `#` are ignored
 // If a key is declared without a value (no equal sign), lookupFn is requested to provide value for the given key
 // value is returned as-is, without any kind of parsing but removal of leading whitespace
-func ParseKeyValueFile(r io.Reader, filename string, lookupFn func(string) (string, bool)) ([]string, error) {
+func ParseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]string, error) {
+	return parseKeyValueFile(r, lookupFn)
+}
+
+const whiteSpaces = " \t"
+
+func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]string, error) {
 	lines := []string{}
 	scanner := bufio.NewScanner(r)
 	currentLine := 0
@@ -34,7 +28,7 @@ func ParseKeyValueFile(r io.Reader, filename string, lookupFn func(string) (stri
 	for scanner.Scan() {
 		scannedBytes := scanner.Bytes()
 		if !utf8.Valid(scannedBytes) {
-			return []string{}, fmt.Errorf("env file %s contains invalid utf8 bytes at line %d: %v", filename, currentLine+1, scannedBytes)
+			return []string{}, fmt.Errorf("invalid utf8 bytes at line %d: %v", currentLine+1, scannedBytes)
 		}
 		// We trim UTF8 BOM
 		if currentLine == 0 {

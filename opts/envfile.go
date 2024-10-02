@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -18,5 +19,14 @@ import (
 // environment variables, that's why we just strip leading whitespace and
 // nothing more.
 func ParseEnvFile(filename string) ([]string, error) {
-	return parseKeyValueFile(filename, os.LookupEnv)
+	fh, err := os.Open(filename)
+	if err != nil {
+		return []string{}, err
+	}
+	out, err := parseKeyValueFile(fh, os.LookupEnv)
+	_ = fh.Close()
+	if err != nil {
+		return []string{}, fmt.Errorf("invalid env file (%s): %v", filename, err)
+	}
+	return out, nil
 }

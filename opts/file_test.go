@@ -20,7 +20,7 @@ ZOT`)
 		return v, ok
 	}
 
-	got, err := ParseKeyValueFile(bytes.NewReader(b), "(inlined)", lookupFn)
+	got, err := ParseKeyValueFile(bytes.NewReader(b), lookupFn)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, got, []string{"FOO=BAR", "ZOT=QIX"})
 }

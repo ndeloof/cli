@@ -2,6 +2,7 @@ package opts
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -25,9 +26,14 @@ func ReadKVEnvStrings(files []string, override []string) ([]string, error) {
 func readKVStrings(files []string, override []string, emptyFn func(string) (string, bool)) ([]string, error) {
 	var variables []string
 	for _, ef := range files {
-		parsedVars, err := parseKeyValueFile(ef, emptyFn)
+		fh, err := os.Open(ef)
 		if err != nil {
-			return nil, err
+			return []string{}, err
+		}
+		parsedVars, err := parseKeyValueFile(fh, emptyFn)
+		_ = fh.Close()
+		if err != nil {
+			return nil, fmt.Errorf("invalid env file (%s): %v", ef, err)
 		}
 		variables = append(variables, parsedVars...)
 	}
